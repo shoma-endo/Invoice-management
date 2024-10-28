@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FileText, Download, Eye, Trash2, ArrowLeft } from 'lucide-react';
+import { Worker, Viewer } from '@react-pdf-viewer/core';
+import '@react-pdf-viewer/core/lib/styles/index.css';
 
 interface Invoice {
   id: number;
@@ -14,6 +16,7 @@ interface Invoice {
 
 const AdminDashboard = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [previewFile, setPreviewFile] = useState<string | null>(null);
 
   useEffect(() => {
     const storedInvoices = JSON.parse(localStorage.getItem('invoices') || '[]');
@@ -30,8 +33,7 @@ const AdminDashboard = () => {
   };
 
   const handlePreview = (invoice: Invoice) => {
-    // Base64 PDFを新しいウィンドウで開く
-    window.open(invoice.file, '_blank');
+    setPreviewFile(invoice.file);
   };
 
   const handleDownload = (invoice: Invoice) => {
@@ -62,6 +64,23 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
+        {previewFile && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+            <div className="bg-white p-4 rounded-lg shadow-lg max-w-3xl w-full">
+              <button
+                onClick={() => setPreviewFile(null)}
+                className="text-red-500 hover:text-red-700 float-right"
+              >
+                閉じる
+              </button>
+              <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
+                <div style={{ height: '750px' }}>
+                  <Viewer fileUrl={previewFile} />
+                </div>
+              </Worker>
+            </div>
+          </div>
+        )}
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">請求書管理画面</h1>
