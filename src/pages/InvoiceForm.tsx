@@ -79,7 +79,7 @@ const InvoiceForm = () => {
         <div className="flex items-center justify-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">請求書提出フォーム</h1>
         </div>
-        {!isProduction && (
+        {/* {!isProduction && ( */}
           <div className="flex justify-end mb-4">
             <Link
               to="/admin"
@@ -88,7 +88,7 @@ const InvoiceForm = () => {
               管理画面へ
             </Link>
           </div>
-        )}
+        {/* )} */}
 
         <div className="bg-white shadow rounded-lg p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
