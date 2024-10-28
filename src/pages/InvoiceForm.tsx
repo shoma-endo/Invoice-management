@@ -7,7 +7,7 @@ interface FormData {
   name: string;
   email: string;
   amount: string;
-  file: File | null;
+  files: File[];
 }
 
 const InvoiceForm = () => {
@@ -15,13 +15,11 @@ const InvoiceForm = () => {
     name: '',
     email: '',
     amount: '',
-    file: null,
+    files: [],
   });
 
   const onDrop = (acceptedFiles: File[]) => {
-    if (acceptedFiles.length > 0) {
-      setFormData(prev => ({ ...prev, file: acceptedFiles[0] }));
-    }
+    setFormData(prev => ({ ...prev, files: [...prev.files, ...acceptedFiles] }));
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -30,7 +28,7 @@ const InvoiceForm = () => {
       'application/pdf': ['.pdf'],
     },
     maxSize: 5242880, // 5MB
-    multiple: false,
+    multiple: true,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -39,35 +37,37 @@ const InvoiceForm = () => {
     const confirmed = window.confirm('この内容で送信してよろしいですか？');
     if (!confirmed) return;
 
-    if (formData.file) {
-      const reader = new FileReader();
-      reader.readAsDataURL(formData.file);
-      
-      reader.onload = () => {
-        const base64File = reader.result as string;
-        const invoices = JSON.parse(localStorage.getItem('invoices') || '[]');
-        const newInvoice = {
-          id: Date.now(),
-          name: formData.name,
-          email: formData.email,
-          amount: formData.amount,
-          date: new Date().toISOString().split('T')[0],
-          fileName: formData.file?.name,
-          file: base64File, // Base64として保存
-        };
+    if (formData.files.length > 0) {
+      formData.files.forEach(file => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
         
-        localStorage.setItem('invoices', JSON.stringify([...invoices, newInvoice]));
+        reader.onload = () => {
+          const base64File = reader.result as string;
+          const invoices = JSON.parse(localStorage.getItem('invoices') || '[]');
+          const newInvoice = {
+            id: Date.now(),
+            name: formData.name,
+            email: formData.email,
+            amount: formData.amount,
+            date: new Date().toISOString().split('T')[0],
+            fileName: file.name,
+            file: base64File, // Base64として保存
+          };
+
+          localStorage.setItem('invoices', JSON.stringify([...invoices, newInvoice]));
+        };
+      });
         
         // フォームをリセット
         setFormData({
           name: '',
           email: '',
           amount: '',
-          file: null,
+          files: [],
         });
 
         alert('請求書が送信されました');
-      };
     }
   };
 
@@ -129,11 +129,15 @@ const InvoiceForm = () => {
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                   value={formData.amount}
                   onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
+                  placeholder="10,000"
                 />
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                   <span className="text-gray-500 sm:text-sm">円</span>
                 </div>
               </div>
+              <p className="mt-1 text-sm text-gray-400">
+                ※複数のPDFをアップロードする場合は総額を記載
+              </p>
             </div>
 
             <div>
@@ -149,16 +153,20 @@ const InvoiceForm = () => {
                 <div className="space-y-1 text-center">
                   <input {...getInputProps()} />
                   <div className="flex justify-center">
-                    {formData.file ? (
-                      <FileText className="h-12 w-12 text-indigo-500" />
+                    {formData.files.length > 0 ? (
+                      formData.files.map((_, index) => (
+                        <FileText key={index} className="h-12 w-12 text-indigo-500" />
+                      ))
                     ) : (
                       <Upload className="h-12 w-12 text-gray-400" />
                     )}
                   </div>
                   <div className="flex text-sm text-gray-600">
                     <p className="pl-1">
-                      {formData.file ? (
-                        <span className="text-indigo-600">{formData.file.name}</span>
+                      {formData.files.length > 0 ? (
+                        formData.files.map((file, index) => (
+                          <span key={index} className="text-indigo-600">{file.name}</span>
+                        ))
                       ) : (
                         'ドラッグ＆ドロップまたはクリックしてファイルを選択'
                       )}
