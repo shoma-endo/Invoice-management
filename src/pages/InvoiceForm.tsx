@@ -18,8 +18,6 @@ const InvoiceForm = () => {
     files: [],
   });
 
-  const isProduction = process.env.NODE_ENV === 'production';
-
   const onDrop = (acceptedFiles: File[]) => {
     setFormData(prev => ({ ...prev, files: [...prev.files, ...acceptedFiles] }));
   };
@@ -79,16 +77,14 @@ const InvoiceForm = () => {
         <div className="flex items-center justify-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">請求書提出フォーム</h1>
         </div>
-        {/* {!isProduction && ( */}
-          <div className="flex justify-end mb-4">
-            <Link
-              to="/admin"
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
-            >
-              管理画面へ
-            </Link>
-          </div>
-        {/* )} */}
+        <div className="flex justify-end mb-4 hidden">
+          <Link
+            to="/admin"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+          >
+            管理画面へ
+          </Link>
+        </div>
 
         <div className="bg-white shadow rounded-lg p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
